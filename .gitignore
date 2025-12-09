@@ -1,0 +1,32 @@
+# Replit specific files
+.replit
+replit.nix
+replit.md
+main.py
+.cache/
+.config/
+.upm/
+.local/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local

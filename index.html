@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <!-- ===== META BÁSICO ===== -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <!-- ===== TÍTULO & DESCRIÇÃO ===== -->
+  <title>Urban Vision | Monitoramento Ambiental</title>
+  <meta name="description" content="Urban Vision — Plataforma inteligente de monitoramento ambiental e análise de qualidade do ar em tempo real em Angola.">
+  <meta name="keywords" content="monitoramento ambiental, qualidade do ar, poluição, Luanda, Urban Vision, mapa interativo, PM2.5, SO2, vegetação urbana, sustentabilidade">
+  <meta name="author" content="Mário Correia Pedro">
+
+  <!-- ===== FAVICON ===== -->
+  <link rel="icon" type="image/png" href="img/nasa.png">
+
+  <!-- ===== SEO SOCIAL (Open Graph / Twitter) ===== -->
+  <meta property="og:title" content="Urban Vision | Monitoramento Ambiental">
+  <meta property="og:description" content="Analisa e monitora em tempo real a qualidade do ar e o verde urbano em Angola. Uma iniciativa sustentável de Mário Correia Pedro.">
+  <meta property="og:image" content="img/nasa.png">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_PT">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Urban Vision | Monitoramento Ambiental">
+  <meta name="twitter:description" content="Mapa ambiental de Angola — qualidade do ar, vegetação e indicadores urbanos em todas as províncias.">
+  <meta name="twitter:image" content="img/nasa.png">
+
+  <!-- ===== PERFORMANCE ===== -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link rel="dns-prefetch" href="https://unpkg.com">
+
+  <!-- ===== ESTILOS ===== -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+
+  <!-- ===== MANIFESTO / PWA (opcional futuramente) ===== -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- ===== CORES DO NAVEGADOR ===== -->
+  <meta name="theme-color" content="#002f6c">
+</head>
+
+
+
+<body>
+
+<!-- ===== BARRA LATERAL ===== -->
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <h3><i class="bi bi-search"></i> <span class="sidebar-title">Urban Vision</span></h3>
+    <button id="toggle-btn" class="btn btn-sm btn-light text-primary"><i class="bi bi-list"></i></button>
+  </div>
+
+  <ul class="sidebar-menu">
+    <li><i class="bi bi-house-door-fill"></i><span>Início</span></li>
+    <li><i class="bi bi-map"></i><span>Mapa</span></li>
+    <li><i class="bi bi-database"></i><span>Dados</span></li>
+    <li><i class="bi bi-graph-up"></i><span>Relatórios</span></li>
+    <li><i class="bi bi-gear-fill"></i><span>Configurações</span></li>
+  </ul>
+
+  <!-- LEGENDA -->
+  <div class="legend">
+    <h5><i class="bi bi-info-circle"></i> Legenda</h5>
+    <div class="legend-item"><div class="color-box" style="background:#198754"></div> Qualidade Boa (PM2.5 ≤ 10)</div>
+    <div class="legend-item"><div class="color-box" style="background:#ffc107"></div> Moderada (PM2.5 ≤ 25)</div>
+    <div class="legend-item"><div class="color-box" style="background:#dc3545"></div> Ruim (PM2.5 > 25)</div>
+    <hr class="text-light">
+    <div class="legend-item"><i class="bi bi-wind"></i> PM2.5 — Poluição do ar</div>
+    <div class="legend-item"><i class="bi bi-cloud-fog"></i> SO₂ — Dióxido de enxofre</div>
+    <div class="legend-item"><i class="bi bi-tree-fill"></i> Vegetação — Percentual verde</div>
+  </div>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div id="main" class="main">
+  <div class="header d-flex align-items-center justify-content-between px-3">
+
+    <!-- LOGO NASA -->
+    <div class="d-flex align-items-center gap-2">
+      <img src="img/nasa.png" alt="Logo NASA" 
+           style="width:45px; height:45px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,0.5);">
+      <div class="weather" id="weatherBar">
+        <i class="bi bi-brightness-high-fill"></i>
+        <span id="weatherText">Domingo, 05 Outubro 2025 — Ensolarado</span>
+      </div>
+    </div>
+
+    <div id="clock" class="fw-bold"></div>
+  </div>
+
+<!-- ===== PESQUISA E TÍTULO ===== -->
+<div class="search-header">
+  <h3 class="page-title">Dashboard / Mapa - Angola</h3>
+
+  <div class="search-container">
+    <input type="text" id="searchCity" placeholder="Pesquisar cidade... (ex: Lubango, Benguela)">
+    <button id="searchBtn" class="btn-search"><i class="bi bi-search"></i></button>
+    <button id="resetBtn" class="btn-reset"><i class="bi bi-arrow-clockwise"></i></button>
+  </div>
+</div>
+
+
+  <!-- ===== MAPA ===== -->
+  <div id="map"></div>
+
+  <!-- ===== CARDS PRINCIPAIS ===== -->
+<div class="card-grid" id="cardsContainer">
+  <div class="info-card"><i class="bi bi-wind"></i><h3 class="fw-bold fs-6 mt-2">PM2.5</h3><p>Selecione um bairro no mapa.</p></div>
+  <div class="info-card"><i class="bi bi-cloud-fog"></i><h3 class="fw-bold fs-6 mt-2">SO₂</h3><p>Informações ao clicar em uma área.</p></div>
+  <div class="info-card"><i class="bi bi-tree-fill"></i><h3 class="fw-bold fs-6 mt-2">Vegetação</h3><p>Percentual verde urbano.</p></div>
+  <div class="info-card"><i class="bi bi-geo-alt-fill"></i><h3 class="fw-bold fs-6 mt-2">Localização</h3><p>Dados atualizados da área.</p></div>
+</div>
+
+<!-- ===== SETAS (decorativas) ===== -->
+<div class="arrow-section">
+  <i class="bi bi-arrow-down-circle-fill arrow"></i>
+  <i class="bi bi-arrow-down-circle-fill arrow"></i>
+  <i class="bi bi-arrow-down-circle-fill arrow"></i>
+  <i class="bi bi-arrow-down-circle-fill arrow"></i>
+</div>
+
+<!-- ===== CARDS DESCRITIVOS ===== -->
+<div class="description-cards">
+  <div class="desc-card">
+    <h4><i class="bi bi-wind"></i> PM2.5</h4>
+    <p>Representa partículas finas em suspensão. Quanto menor o valor, melhor a qualidade do ar.</p>
+  </div>
+
+  <div class="desc-card">
+    <h4><i class="bi bi-cloud-fog"></i> SO₂</h4>
+    <p>Indica a presença de dióxido de enxofre, geralmente relacionado a áreas industriais.</p>
+  </div>
+
+  <div class="desc-card">
+    <h4><i class="bi bi-tree-fill"></i> Vegetação</h4>
+    <p>Mostra o percentual de cobertura verde em determinada área urbana.</p>
+  </div>
+
+  <div class="desc-card">
+    <h4><i class="bi bi-geo-alt-fill"></i> Localização</h4>
+    <p>Mostra o nome, coordenadas e dados de zona selecionada no mapa.</p>
+  </div>
+</div>
+
+
+
+  
+</div>
+
+<!-- Chat Widget -->
+<div id="chatWidget" class="chat-widget">
+  <div class="chat-header">
+    <span><i class="bi bi-robot"></i> Urban Vision AI</span>
+    <button id="closeChatBtn" class="btn-close-chat"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <div id="chatMessages" class="chat-messages">
+    <div class="chat-message bot">
+      <p>Olá! Sou o assistente Urban Vision AI. Posso ajudar com:</p>
+      <ul>
+        <li>Monitoramento de CO2 e zonas de calor</li>
+        <li>Previsões climáticas para Luanda</li>
+        <li>Recomendações de áreas verdes</li>
+        <li>Planejamento urbano sustentável</li>
+      </ul>
+      <p>Como posso ajudá-lo hoje?</p>
+    </div>
+  </div>
+  <div class="chat-input-container">
+    <input type="text" id="chatInput" placeholder="Digite sua pergunta..." />
+    <button id="sendChatBtn"><i class="bi bi-send-fill"></i></button>
+  </div>
+</div>
+
+<button id="chatToggleBtn" class="chat-toggle-btn">
+  <i class="bi bi-chat-dots-fill"></i>
+</button>
+
+<!-- AI Analysis Modal -->
+<div id="analysisModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4><i class="bi bi-graph-up"></i> Análise IA - <span id="modalAreaName"></span></h4>
+      <button id="closeModalBtn" class="btn-close-modal"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div id="analysisContent" class="modal-body">
+      <div class="loading-spinner"><i class="bi bi-arrow-repeat spin"></i> Analisando com IA...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// Sidebar toggle
+const sidebar = document.getElementById('sidebar');
+const toggleBtn = document.getElementById('toggle-btn');
+
+toggleBtn.addEventListener('click', () => {
+  if (window.innerWidth < 768) {
+    sidebar.classList.toggle('show');
+  } else {
+    sidebar.classList.toggle('collapsed');
+  }
+});
+
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').innerText = now.toLocaleTimeString('pt-PT');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Mapa Leaflet - Vista de Angola
+const map = L.map('map').setView([-12.5,18.5],6);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+  maxZoom:19,
+  attribution:'&copy; OpenStreetMap'
+}).addTo(map);
+
+// Dados ambientais de Angola (baseados em dados reais IQAir 2024 e World Bank)
+// PM2.5: Média Angola 11-13 µg/m³ | SO2: estimativas baseadas em atividade industrial
+// Vegetação: baseada em dados de cobertura florestal por província
+const bairros = [
+  // Luanda (Capital) - PM2.5 real: ~13 µg/m³
+  {name:"Maianga", coords:[-8.835,13.232], pm25:14, so2:5, verd:18, texto:"Maianga - Luanda. Zona central urbana densa."},
+  {name:"Samba", coords:[-8.850,13.310], pm25:12, so2:4, verd:22, texto:"Samba - Luanda. Área residencial com parques."},
+  {name:"Rangel", coords:[-8.870,13.285], pm25:16, so2:6, verd:12, texto:"Rangel - Luanda. Alta densidade populacional."},
+  {name:"Ingombota", coords:[-8.820,13.243], pm25:13, so2:4, verd:25, texto:"Ingombota - Luanda. Marginal e zona comercial."},
+  {name:"Viana", coords:[-8.903,13.373], pm25:15, so2:6, verd:15, texto:"Viana - Luanda. Zona industrial ativa."},
+  {name:"Cacuaco", coords:[-8.783,13.367], pm25:14, so2:5, verd:20, texto:"Cacuaco - Luanda. Refinaria e indústrias."},
+  
+  // Benguela - PM2.5 real: ~12 µg/m³
+  {name:"Benguela", coords:[-12.578,13.405], pm25:12, so2:3, verd:28, texto:"Benguela - Capital provincial. Clima costeiro."},
+  {name:"Lobito", coords:[-12.364,13.536], pm25:13, so2:4, verd:24, texto:"Lobito - Porto comercial importante."},
+  {name:"Catumbela", coords:[-12.432,13.549], pm25:14, so2:5, verd:30, texto:"Catumbela - Aeroporto e zona agroindustrial."},
+  
+  // Huambo - PM2.5 real: ~13 µg/m³ (planalto central)
+  {name:"Huambo", coords:[-12.776,15.739], pm25:13, so2:3, verd:35, texto:"Huambo - Planalto central, 1700m altitude."},
+  {name:"Caála", coords:[-12.852,15.561], pm25:11, so2:2, verd:42, texto:"Caála - Região agrícola do planalto."},
+  
+  // Huíla - PM2.5 real: ~12 µg/m³
+  {name:"Lubango", coords:[-14.917,13.500], pm25:12, so2:3, verd:38, texto:"Lubango - Altitude 1760m, clima temperado."},
+  {name:"Matala", coords:[-14.733,15.017], pm25:11, so2:2, verd:32, texto:"Matala - Barragem hidroelétrica."},
+  
+  // Cabinda - Floresta tropical + petróleo
+  {name:"Cabinda", coords:[-5.550,12.200], pm25:14, so2:7, verd:85, texto:"Cabinda - Floresta tropical densa, exploração petrolífera."},
+  
+  // Namibe - Deserto costeiro
+  {name:"Namibe", coords:[-15.196,12.152], pm25:8, so2:2, verd:5, texto:"Namibe - Deserto do Namibe, ar limpo."},
+  {name:"Tômbwa", coords:[-15.800,11.867], pm25:7, so2:1, verd:3, texto:"Tômbwa - Costa desértica, pesca."},
+  
+  // Malanje
+  {name:"Malanje", coords:[-9.540,16.341], pm25:11, so2:3, verd:55, texto:"Malanje - Quedas de Kalandula, floresta."},
+  
+  // Cuanza Sul
+  {name:"Sumbe", coords:[-11.206,13.843], pm25:10, so2:2, verd:45, texto:"Sumbe - Cidade costeira, pesca."},
+  {name:"Porto Amboim", coords:[-10.722,13.761], pm25:9, so2:2, verd:48, texto:"Porto Amboim - Antiga cidade industrial."},
+  
+  // Cuanza Norte
+  {name:"N'dalatando", coords:[-9.297,14.912], pm25:10, so2:2, verd:52, texto:"N'dalatando - Região cafeeira histórica."},
+  
+  // Uíge - Floresta tropical
+  {name:"Uíge", coords:[-7.609,15.061], pm25:10, so2:2, verd:70, texto:"Uíge - Floresta tropical, café e algodão."},
+  
+  // Zaire
+  {name:"M'banza Congo", coords:[-6.267,14.240], pm25:9, so2:2, verd:65, texto:"M'banza Congo - Património Mundial UNESCO."},
+  
+  // Lunda Norte - Mineração de diamantes
+  {name:"Dundo", coords:[-7.381,20.836], pm25:13, so2:5, verd:60, texto:"Dundo - Centro diamantífero, minas ativas."},
+  
+  // Lunda Sul
+  {name:"Saurimo", coords:[-9.660,20.390], pm25:12, so2:4, verd:58, texto:"Saurimo - Mineração e floresta."},
+  
+  // Moxico - PM2.5 real: ~11 µg/m³
+  {name:"Luena", coords:[-11.783,19.917], pm25:11, so2:2, verd:72, texto:"Luena - Maior província, baixa densidade."},
+  
+  // Bié
+  {name:"Kuito", coords:[-12.383,16.933], pm25:12, so2:2, verd:45, texto:"Kuito - Reconstrução pós-guerra."},
+  
+  // Cuando Cubango - Savana
+  {name:"Menongue", coords:[-14.658,17.691], pm25:9, so2:1, verd:40, texto:"Menongue - Savana, parques naturais."},
+  
+  // Cunene - Semiárido
+  {name:"Ondjiva", coords:[-17.067,15.733], pm25:10, so2:2, verd:20, texto:"Ondjiva - Clima semiárido, fronteira Namíbia."},
+  
+  // Bengo
+  {name:"Caxito", coords:[-8.578,13.664], pm25:13, so2:4, verd:35, texto:"Caxito - Agricultura, proximidade a Luanda."}
+];
+
+function getColor(pm){ if(pm<=10)return"#198754"; if(pm<=25)return"#ffc107"; return"#dc3545"; }
+
+// Marcadores
+bairros.forEach(b=>{
+  const radius = b.name.includes('Luanda') || ['Maianga','Samba','Rangel','Ingombota','Viana','Cacuaco'].includes(b.name) ? 3000 : 15000;
+  const c=L.circle(b.coords,{
+    color:getColor(b.pm25),
+    fillColor:getColor(b.pm25),
+    fillOpacity:0.6,
+    radius:radius
+  }).addTo(map);
+  c.bindPopup(`<b>${b.name}</b><br>PM2.5:${b.pm25}<br>SO₂:${b.so2}<br>Vegetação:${b.verd}%<br><button class="btn-analyze" onclick="analyzeArea(bairros[${bairros.indexOf(b)}])">Análise IA</button>`);
+  c.on('click',()=>{
+    document.getElementById('cardsContainer').innerHTML = `
+      <div class="info-card"><i class="bi bi-wind"></i><h3>PM2.5</h3><p>${b.pm25} μg/m³</p></div>
+      <div class="info-card"><i class="bi bi-cloud-fog"></i><h3>SO₂</h3><p>${b.so2} ppm</p></div>
+      <div class="info-card"><i class="bi bi-tree-fill"></i><h3>Vegetação</h3><p>${b.verd}%</p></div>
+      <div class="info-card"><i class="bi bi-geo-alt-fill"></i><h3>${b.name}</h3><p>${b.texto}</p></div>
+    `;
+  });
+});
+
+// Pesquisa
+document.getElementById('searchBtn').addEventListener('click', ()=>{
+  const q = document.getElementById('searchCity').value.trim().toLowerCase();
+  const bairro = bairros.find(b => b.name.toLowerCase() === q);
+  if(bairro){
+    map.setView(bairro.coords, 14);
+    L.popup().setLatLng(bairro.coords)
+      .setContent(`<b>${bairro.name}</b><br>${bairro.texto}`)
+      .openOn(map);
+  } else {
+    alert("Bairro não encontrado!");
+  }
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  map.setView([-12.5,18.5],6);
+});
+
+// Chat functionality
+const chatWidget = document.getElementById('chatWidget');
+const chatToggleBtn = document.getElementById('chatToggleBtn');
+const closeChatBtn = document.getElementById('closeChatBtn');
+const chatInput = document.getElementById('chatInput');
+const sendChatBtn = document.getElementById('sendChatBtn');
+const chatMessages = document.getElementById('chatMessages');
+const analysisModal = document.getElementById('analysisModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+
+let chatHistory = [];
+
+chatToggleBtn.addEventListener('click', () => {
+  chatWidget.classList.toggle('open');
+  chatToggleBtn.classList.toggle('hidden');
+});
+
+closeChatBtn.addEventListener('click', () => {
+  chatWidget.classList.remove('open');
+  chatToggleBtn.classList.remove('hidden');
+});
+
+closeModalBtn.addEventListener('click', () => {
+  analysisModal.style.display = 'none';
+});
+
+async function sendMessage() {
+  const message = chatInput.value.trim();
+  if (!message) return;
+  
+  chatMessages.innerHTML += `<div class="chat-message user"><p>${message}</p></div>`;
+  chatInput.value = '';
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  
+  chatMessages.innerHTML += `<div class="chat-message bot loading"><p><i class="bi bi-arrow-repeat spin"></i> Pensando...</p></div>`;
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  
+  try {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, history: chatHistory })
+    });
+    
+    const data = await response.json();
+    document.querySelector('.chat-message.loading')?.remove();
+    
+    if (data.error) {
+      chatMessages.innerHTML += `<div class="chat-message bot error"><p>${data.error}</p></div>`;
+    } else {
+      chatHistory.push({ role: 'user', content: message });
+      chatHistory.push({ role: 'assistant', content: data.response });
+      const formattedResponse = data.response.replace(/\n/g, '<br>');
+      chatMessages.innerHTML += `<div class="chat-message bot"><p>${formattedResponse}</p></div>`;
+    }
+  } catch (error) {
+    document.querySelector('.chat-message.loading')?.remove();
+    chatMessages.innerHTML += `<div class="chat-message bot error"><p>Erro de conexão. Verifique se o servidor está funcionando.</p></div>`;
+  }
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+sendChatBtn.addEventListener('click', sendMessage);
+chatInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') sendMessage();
+});
+
+async function analyzeArea(bairro) {
+  analysisModal.style.display = 'flex';
+  document.getElementById('modalAreaName').textContent = bairro.name;
+  document.getElementById('analysisContent').innerHTML = '<div class="loading-spinner"><i class="bi bi-arrow-repeat spin"></i> Analisando com IA...</div>';
+  
+  try {
+    const response = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        area: bairro.name,
+        pm25: bairro.pm25,
+        so2: bairro.so2,
+        vegetation: bairro.verd
+      })
+    });
+    
+    const data = await response.json();
+    if (data.error) {
+      document.getElementById('analysisContent').innerHTML = `<p class="error">${data.error}</p>`;
+    } else {
+      const formattedAnalysis = data.analysis.replace(/\n/g, '<br>');
+      document.getElementById('analysisContent').innerHTML = `<div class="analysis-result">${formattedAnalysis}</div>`;
+    }
+  } catch (error) {
+    document.getElementById('analysisContent').innerHTML = '<p class="error">Erro ao conectar com a IA.</p>';
+  }
+}
+
+</script>
+
+</body>
+</html>
