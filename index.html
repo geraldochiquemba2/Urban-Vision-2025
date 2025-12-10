@@ -87,7 +87,7 @@
            style="width:45px; height:45px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,0.5);">
       <div class="weather" id="weatherBar">
         <i class="bi bi-brightness-high-fill"></i>
-        <span id="weatherText">Domingo, 05 Outubro 2025 — Ensolarado</span>
+        <span id="weatherText"></span>
       </div>
     </div>
 
@@ -209,13 +209,44 @@ toggleBtn.addEventListener('click', () => {
   }
 });
 
-// Clock
+// Clock e Data
 function updateClock() {
   const now = new Date();
   document.getElementById('clock').innerText = now.toLocaleTimeString('pt-PT');
 }
+
+function updateDateTime() {
+  const now = new Date();
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const dateStr = now.toLocaleDateString('pt-PT', options);
+  
+  // Determinar hora do dia para ícone
+  const hour = now.getHours();
+  let weatherIcon = 'bi-brightness-high-fill'; // Sol (dia)
+  let weatherText = 'Ensolarado';
+  
+  if (hour >= 6 && hour < 12) {
+    weatherIcon = 'bi-sunrise-fill';
+    weatherText = 'Manhã';
+  } else if (hour >= 12 && hour < 18) {
+    weatherIcon = 'bi-brightness-high-fill';
+    weatherText = 'Tarde';
+  } else if (hour >= 18 && hour < 21) {
+    weatherIcon = 'bi-sunset-fill';
+    weatherText = 'Entardecer';
+  } else {
+    weatherIcon = 'bi-moon-stars-fill';
+    weatherText = 'Noite';
+  }
+  
+  const weatherBar = document.getElementById('weatherBar');
+  weatherBar.innerHTML = `<i class="bi ${weatherIcon}"></i><span id="weatherText">${dateStr} — ${weatherText}</span>`;
+}
+
 setInterval(updateClock, 1000);
+setInterval(updateDateTime, 60000); // Atualiza a cada minuto
 updateClock();
+updateDateTime();
 
 // Mapa Leaflet - Vista de Angola
 const map = L.map('map').setView([-12.5,18.5],6);
