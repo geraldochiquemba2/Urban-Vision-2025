@@ -397,10 +397,8 @@ async function sendMessage() {
   
   chatMessages.innerHTML += `<div class="chat-message user"><p>${message}</p></div>`;
   chatInput.value = '';
-  chatMessages.scrollTop = chatMessages.scrollHeight;
   
   chatMessages.innerHTML += `<div class="chat-message bot loading"><p><i class="bi bi-arrow-repeat spin"></i> Pensando...</p></div>`;
-  chatMessages.scrollTop = chatMessages.scrollHeight;
   
   try {
     const response = await fetch('/api/chat', {
@@ -424,7 +422,7 @@ async function sendMessage() {
     document.querySelector('.chat-message.loading')?.remove();
     chatMessages.innerHTML += `<div class="chat-message bot error"><p>Erro de conexão. Verifique se o servidor está funcionando.</p></div>`;
   }
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+  // Scroll removido - mantém a visualização no topo
 }
 
 sendChatBtn.addEventListener('click', sendMessage);
