@@ -418,11 +418,17 @@ async function sendMessage() {
       const formattedResponse = data.response.replace(/\n/g, '<br>');
       chatMessages.innerHTML += `<div class="chat-message bot"><p>${formattedResponse}</p></div>`;
     }
+    
+    // Scroll para a mensagem do usuário (topo da nova interação)
+    const userMessages = chatMessages.querySelectorAll('.chat-message.user');
+    if (userMessages.length > 0) {
+      const lastUserMessage = userMessages[userMessages.length - 1];
+      lastUserMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   } catch (error) {
     document.querySelector('.chat-message.loading')?.remove();
     chatMessages.innerHTML += `<div class="chat-message bot error"><p>Erro de conexão. Verifique se o servidor está funcionando.</p></div>`;
   }
-  // Scroll removido - mantém a visualização no topo
 }
 
 sendChatBtn.addEventListener('click', sendMessage);
