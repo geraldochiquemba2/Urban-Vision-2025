@@ -402,8 +402,8 @@
   right: 20px;
   width: 380px;
   max-width: 90vw;
-  height: 500px;
-  max-height: 70vh;
+  height: 600px;
+  max-height: 80vh;
   background: rgba(10, 30, 60, 0.95);
   border-radius: 16px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
@@ -458,10 +458,12 @@
 .chat-messages {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 15px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  scroll-behavior: smooth;
 }
 
 .chat-message {
@@ -690,7 +692,7 @@
     right: 10px;
     bottom: 80px;
     width: calc(100vw - 20px);
-    height: 60vh;
+    height: 70vh;
   }
   
   .chat-toggle-btn {
